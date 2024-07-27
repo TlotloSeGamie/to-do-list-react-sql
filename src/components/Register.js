@@ -1,11 +1,11 @@
 import React, { useState } from "react";
+import axios from 'axios';
 
 function Register({ onFormSwitch }) {
   const [formData, setFormData] = useState({
     username: '',
     email: '',
     password: '',
-    confirmPassword: '',
   });
 
   const [errors, setErrors] = useState({});
@@ -18,7 +18,7 @@ function Register({ onFormSwitch }) {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = {};
 
@@ -28,8 +28,6 @@ function Register({ onFormSwitch }) {
 
     if (!formData.email.trim()) {
       validationErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      validationErrors.email = "Email is not valid";
     }
 
     if (!formData.password.trim()) {
@@ -38,22 +36,34 @@ function Register({ onFormSwitch }) {
       validationErrors.password = "Password should be at least 8 characters";
     }
 
-    if (formData.confirmPassword !== formData.password) {
-      validationErrors.confirmPassword = "Passwords do not match";
-    }
-
     setErrors(validationErrors);
 
-    if (Object.keys(validationErrors).length === 0) {
-      alert("Registered Successfully");
-      onFormSwitch('login'); 
+    if (Object.keys(validationErrors).length > 0) {
+      return;
+    }
+
+    try {
+      await axios.post('http://localhost:3001/register', {
+        username: formData.username,
+        email: formData.email,
+        password: formData.password
+      });
+
+      onFormSwitch('login');
+    } catch (error) {
+      if (error.response && error.response.data.error) {
+        setErrors({ form: error.response.data.error });
+      } else {
+        setErrors({ form: 'An error occurred' });
+      }
     }
   };
 
   return (
     <div>
       <form className="form-container" onSubmit={handleSubmit}>
-        <h3>Sign Up</h3>
+        <h4>Register</h4>
+        {errors.form && <span>{errors.form}</span>}
         <label htmlFor="username"><b>Username</b></label>
         <input
           type="text"
@@ -63,34 +73,26 @@ function Register({ onFormSwitch }) {
           onChange={handleChange}
         />
         {errors.username && <span>{errors.username}</span>}
-        <label htmlFor="email"><b>Email Address</b></label>
+        <label htmlFor="email"><b>Email</b></label>
         <input
           type="text"
-          placeholder="example@gmail.com"
+          placeholder="Email"
           name="email"
           value={formData.email}
           onChange={handleChange}
         />
         {errors.email && <span>{errors.email}</span>}
-        <label htmlFor="password"><b>Create Password</b></label>
+        <label htmlFor="password"><b>Password</b></label>
         <input
           type="password"
-          placeholder="Create password"
+          placeholder="Password"
           name="password"
           value={formData.password}
           onChange={handleChange}
         />
         {errors.password && <span>{errors.password}</span>}
-        <input
-          type="password"
-          placeholder="Confirm password"
-          name="confirmPassword"
-          value={formData.confirmPassword}
-          onChange={handleChange}
-        />
-        {errors.confirmPassword && <span>{errors.confirmPassword}</span>}
-        <button className="btn" type="submit">Create Account</button>
-        <button type="button" onClick={() => onFormSwitch('login')} className="btn">Already have an account? Log In</button>
+        <button type="submit" className="btn">Register</button>
+        <button className="btn link-btn" onClick={() => onFormSwitch('login')}>Already have an account? Login here.</button>
       </form>
     </div>
   );

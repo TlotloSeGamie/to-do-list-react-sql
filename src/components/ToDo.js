@@ -1,80 +1,96 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from "react";
+import axios from 'axios';
 
-function ToDoApp() {
+function ToDoApp({ user, onLogout }) {
   const [tasks, setTasks] = useState([]);
-  const [newTask, setNewTask] = useState({ description: '', priority: 'low' });
-  const [searchTerm, setSearchTerm] = useState('');
+  const [newTask, setNewTask] = useState({
+    description: '',
+    priority: 'low',
+  });
 
-  const addTask = () => {
-    if (newTask.description.trim() !== '') {
-      setTasks([...tasks, newTask]);
-      setNewTask({ description: '', priority: 'low' });
+  const fetchTasks = async () => {
+    try {
+      const response = await axios.get(`http://localhost:3001/tasks/${user.id}`);
+      setTasks(response.data);
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
     }
   };
 
-  const removeTask = (index) => {
-    const newTasks = tasks.filter((task, i) => i !== index);
-    setTasks(newTasks);
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setNewTask({
+      ...newTask,
+      [name]: value,
+    });
   };
 
-  const updateTask = (index, updatedTask) => {
-    const newTasks = tasks.map((task, i) => (i === index ? updatedTask : task));
-    setTasks(newTasks);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post('http://localhost:3001/tasks', {
+        user_id: user.id,
+        ...newTask,
+      });
+      setTasks([...tasks, { id: response.data.id, ...newTask }]);
+      setNewTask({ description: '', priority: 'low' });
+    } catch (error) {
+      console.error("Error adding task:", error);
+    }
   };
 
-  const filteredTasks = tasks.filter(task =>
-    task.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`http://localhost:3001/tasks/${id}`);
+      setTasks(tasks.filter(task => task.id !== id));
+    } catch (error) {
+      console.error("Error deleting task:", error);
+    }
+  };
 
-  const priorityColor = {
-    high: 'red',
-    medium: 'yellow',
-    low: 'green'
+  const handleUpdate = async (id) => {
+    try {
+      await axios.put(`http://localhost:3001/tasks/${id}`, {
+        description: newTask.description,
+        priority: newTask.priority,
+      });
+      setTasks(tasks.map(task => task.id === id ? { ...task, description: newTask.description, priority: newTask.priority } : task));
+      setNewTask({ description: '', priority: 'low' });
+    } catch (error) {
+      console.error("Error updating task:", error);
+    }
   };
 
   return (
-    <div className="todo-app">
-      <h2>My To-Do List</h2>
-      <input
-        type="text"
-        value={newTask.description}
-        onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-        placeholder="Add a new task"
-      />
-      <select
-        value={newTask.priority}
-        onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
-      >
-        <option value="high">High</option>
-        <option value="medium">Medium</option>
-        <option value="low">Low</option>
-      </select>
-      <button onClick={addTask} className='btn'>Add Task</button>
-
-      <input
-        type="text"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        placeholder="Search tasks"
-      />
-
+    <div>
+      <h2>Welcome, {user.username}</h2>
+      <button onClick={onLogout}>Logout</button>
+      <h4>To-Do List</h4>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          placeholder="Task description"
+          name="description"
+          value={newTask.description}
+          onChange={handleChange}
+        />
+        <select name="priority" value={newTask.priority} onChange={handleChange}>
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+        </select>
+        <button type="submit">Add Task</button>
+      </form>
       <ul>
-        {filteredTasks.map((task, index) => (
-          <li key={index} style={{ color: priorityColor[task.priority] }}>
-            <input
-              type="text"
-              value={task.description}
-              onChange={(e) => updateTask(index, { ...task, description: e.target.value })}
-            />
-            <select
-              value={task.priority}
-              onChange={(e) => updateTask(index, { ...task, priority: e.target.value })}
-            >
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
-            </select>
-            <button onClick={() => removeTask(index)}>Remove</button>
+        {tasks.map((task) => (
+          <li key={task.id}>
+            <span>{task.description} - {task.priority}</span>
+            <button onClick={() => handleDelete(task.id)}>Delete</button>
+            <button onClick={() => handleUpdate(task.id)}>Update</button>
           </li>
         ))}
       </ul>

@@ -1,172 +1,110 @@
 const express = require('express');
-const cors = require('cors');
-const betterSqlite3 = require('better-sqlite3');
+const bodyParser = require('body-parser');
+const mysql = require('mysql2');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-require('dotenv').config(); // Load environment variables
+const cors = require('cors');
 
 const app = express();
-const port = 3001;
-const db = betterSqlite3('database.db');
-const secretKey = process.env.SECRET_KEY || 'your_secret_key'; // Use environment variable
-
 app.use(cors());
-app.use(express.json());
+app.use(bodyParser.json());
 
-// Create the Tables if they don't exist
-const createTables = () => {
-  const userTable = `
+const connection = mysql.createConnection({
+  host: 'localhost',
+  user: 'root',
+  password: 'root',
+  database: 'todo_database'
+});
+
+connection.connect((err) => {
+  if (err) throw err;
+  console.log('Connected to MySQL database!');
+  connection.query(`
     CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      username TEXT NOT NULL UNIQUE,
-      email TEXT NOT NULL UNIQUE,
-      password TEXT NOT NULL
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      username VARCHAR(255) NOT NULL UNIQUE,
+      email VARCHAR(255) NOT NULL,
+      password VARCHAR(255) NOT NULL
     )
-  `;
-  db.prepare(userTable).run();
-
-  const taskTable = `
+  `);
+  connection.query(`
     CREATE TABLE IF NOT EXISTS tasks (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL,
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT NOT NULL,
       description TEXT NOT NULL,
-      priority TEXT CHECK( priority IN ('low','medium','high') ) NOT NULL DEFAULT 'low',
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      priority ENUM('low', 'medium', 'high') NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id)
     )
-  `;
-  db.prepare(taskTable).run();
-};
+  `);
+});
 
-createTables();
-
-// Middleware to authenticate token
-const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-  if (!token) return res.status(401).json({ error: 'Access denied' });
-
-  jwt.verify(token, secretKey, (err, user) => {
-    if (err) return res.status(403).json({ error: 'Invalid token' });
-    req.user = user;
-    next();
-  });
-};
-
-// User Registration
 app.post('/register', async (req, res) => {
   const { username, email, password } = req.body;
-
-  if (!username || !email || !password) {
-    return res.status(400).json({ error: 'All fields are required' });
-  }
-
-  if (password.length < 8) {
-    return res.status(400).json({ error: 'Password should be at least 8 characters long' });
-  }
-
-  try {
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const sql = `
-      INSERT INTO users (username, email, password)
-      VALUES (?, ?, ?)
-    `;
-    const info = db.prepare(sql).run(username, email, hashedPassword);
-    res.status(201).json({ message: 'User registered successfully', id: info.lastInsertRowid });
-  } catch (err) {
-    if (err.code === 'SQLITE_CONSTRAINT_UNIQUE') {
-      res.status(400).json({ error: 'Username or email already exists' });
+  const hashedPassword = await bcrypt.hash(password, 10);
+  connection.query('INSERT INTO users (username, email, password) VALUES (?, ?, ?)', [username, email, hashedPassword], (err) => {
+    if (err) {
+      res.status(500).send('Registration failed');
     } else {
-      res.status(500).json({ error: 'Internal server error' });
+      res.status(200).send('User registered successfully');
     }
-  }
+  });
 });
 
-// User Login
-app.post('/login', async (req, res) => {
-  const { email, password } = req.body;
-
-  if (!email || !password) {
-    return res.status(400).json({ error: 'All fields are required' });
-  }
-
-  const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
-  if (!user) {
-    return res.status(400).json({ error: 'Invalid email or password' });
-  }
-
-  const validPassword = await bcrypt.compare(password, user.password);
-  if (!validPassword) {
-    return res.status(400).json({ error: 'Invalid email or password' });
-  }
-
-  const token = jwt.sign({ id: user.id, username: user.username, email: user.email }, secretKey);
-  res.json({ token });
+app.post('/login', (req, res) => {
+  const { username, password } = req.body;
+  connection.query('SELECT * FROM users WHERE username = ?', [username], async (err, results) => {
+    if (err || results.length === 0 || !await bcrypt.compare(password, results[0].password)) {
+      res.status(401).send('Invalid username or password');
+    } else {
+      res.status(200).json({ user: results[0] });
+    }
+  });
 });
 
-// Add a new task
-app.post('/tasks', authenticateToken, (req, res) => {
+app.get('/tasks/:userId', (req, res) => {
+  const userId = req.params.userId;
+  connection.query('SELECT * FROM tasks WHERE user_id = ?', [userId], (err, results) => {
+    if (err) {
+      res.status(500).send('Failed to fetch tasks');
+    } else {
+      res.status(200).json(results);
+    }
+  });
+});
+
+app.post('/tasks', (req, res) => {
+  const { user_id, description, priority } = req.body;
+  connection.query('INSERT INTO tasks (user_id, description, priority) VALUES (?, ?, ?)', [user_id, description, priority], (err, results) => {
+    if (err) {
+      res.status(500).send('Failed to add task');
+    } else {
+      res.status(200).json({ id: results.insertId });
+    }
+  });
+});
+
+app.delete('/tasks/:id', (req, res) => {
+  const id = req.params.id;
+  connection.query('DELETE FROM tasks WHERE id = ?', [id], (err) => {
+    if (err) {
+      res.status(500).send('Failed to delete task');
+    } else {
+      res.status(200).send('Task deleted successfully');
+    }
+  });
+});
+
+app.put('/tasks/:id', (req, res) => {
+  const id = req.params.id;
   const { description, priority } = req.body;
-  const user_id = req.user.id;
-
-  if (!description || !priority) {
-    return res.status(400).json({ error: 'All fields are required' });
-  }
-
-  const sql = `
-    INSERT INTO tasks (user_id, description, priority)
-    VALUES (?, ?, ?)
-  `;
-  const info = db.prepare(sql).run(user_id, description, priority);
-  res.status(201).json({ id: info.lastInsertRowid });
+  connection.query('UPDATE tasks SET description = ?, priority = ? WHERE id = ?', [description, priority, id], (err) => {
+    if (err) {
+      res.status(500).send('Failed to update task');
+    } else {
+      res.status(200).send('Task updated successfully');
+    }
+  });
 });
 
-// Get tasks for a user
-app.get('/tasks', authenticateToken, (req, res) => {
-  const user_id = req.user.id;
-  const sql = `
-    SELECT * FROM tasks
-    WHERE user_id = ?
-  `;
-  const tasks = db.prepare(sql).all(user_id);
-  res.json(tasks);
-});
-
-// Update a task
-app.put('/tasks/:id', authenticateToken, (req, res) => {
-  const { id } = req.params;
-  const { description, priority } = req.body;
-  const user_id = req.user.id;
-
-  const sql = `
-    UPDATE tasks
-    SET description = ?, priority = ?
-    WHERE id = ? AND user_id = ?
-  `;
-  const info = db.prepare(sql).run(description, priority, id, user_id);
-  if (info.changes > 0) {
-    res.json({ message: 'Task updated successfully' });
-  } else {
-    res.status(404).json({ error: 'Task not found' });
-  }
-});
-
-// Delete a task
-app.delete('/tasks/:id', authenticateToken, (req, res) => {
-  const { id } = req.params;
-  const user_id = req.user.id;
-
-  const sql = `
-    DELETE FROM tasks
-    WHERE id = ? AND user_id = ?
-  `;
-  const info = db.prepare(sql).run(id, user_id);
-  if (info.changes > 0) {
-    res.json({ message: 'Task deleted successfully' });
-  } else {
-    res.status(404).json({ error: 'Task not found' });
-  }
-});
-
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
+app.listen(3001, () => {
+  console.log('Server is running on port 3001');
 });

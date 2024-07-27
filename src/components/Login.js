@@ -1,8 +1,9 @@
 import React, { useState } from "react";
+import axios from 'axios';
 
 function Login({ onFormSwitch, onLogin }) {
   const [formData, setFormData] = useState({
-    username: '',
+    email: '',
     password: '',
   });
 
@@ -16,12 +17,12 @@ function Login({ onFormSwitch, onLogin }) {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = {};
 
-    if (!formData.username.trim()) {
-      validationErrors.username = "Username is required";
+    if (!formData.email.trim()) {
+      validationErrors.email = "Email is required";
     }
 
     if (!formData.password.trim()) {
@@ -36,22 +37,32 @@ function Login({ onFormSwitch, onLogin }) {
       return;
     }
 
-    onLogin(); 
+    try {
+      const response = await axios.post('http://localhost:3001/login', {
+        email: formData.email,
+        password: formData.password
+      });
+
+      onLogin(response.data.user);
+    } catch (error) {
+      setErrors({ form: 'Invalid email or password' });
+    }
   };
 
   return (
     <div>
       <form className="form-container" onSubmit={handleSubmit}>
         <h4>Sign In</h4>
-        <label htmlFor="username"><b>Username</b></label>
+        {errors.form && <span>{errors.form}</span>}
+        <label htmlFor="email"><b>Email</b></label>
         <input
           type="text"
-          placeholder="Username"
-          name="username"
-          value={formData.username}
+          placeholder="Email"
+          name="email"
+          value={formData.email}
           onChange={handleChange}
         />
-        {errors.username && <span>{errors.username}</span>}
+        {errors.email && <span>{errors.email}</span>}
         <label htmlFor="password"><b>Password</b></label>
         <input
           type="password"
@@ -61,8 +72,8 @@ function Login({ onFormSwitch, onLogin }) {
           onChange={handleChange}
         />
         {errors.password && <span>{errors.password}</span>}
-        <button type="submit" className="btn">Log In</button>
-        <button type="button" onClick={() => onFormSwitch('register')} className="btn">Don't have an account? Register</button>
+        <button type="submit" className="btn">Login</button>
+        <button className="btn link-btn" onClick={() => onFormSwitch('register')}>Don't have an account? Register here.</button>
       </form>
     </div>
   );
