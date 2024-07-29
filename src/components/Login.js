@@ -39,7 +39,7 @@ function Login({ onFormSwitch, onLogin }) {
 
     try {
       const response = await axios.post('http://localhost:3001/login', {
-        email: formData.email,
+        email: formData.email, // Ensure email is used
         password: formData.password
       });
 

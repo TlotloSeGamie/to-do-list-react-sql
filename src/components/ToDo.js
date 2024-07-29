@@ -11,7 +11,8 @@ function ToDoApp({ user, onLogout }) {
   const fetchTasks = async () => {
     try {
       const response = await axios.get(`http://localhost:3001/tasks/${user.id}`);
-      setTasks(response.data);
+      console.log(response);
+      setTasks(response.data.tasks);
     } catch (error) {
       console.error("Error fetching tasks:", error);
     }
@@ -85,7 +86,8 @@ function ToDoApp({ user, onLogout }) {
         </select>
         <button type="submit">Add Task</button>
       </form>
-      <ul>
+      {tasks.length == 0 ? <div> </div>: <div> 
+        <ul>
         {tasks.map((task) => (
           <li key={task.id}>
             <span>{task.description} - {task.priority}</span>
@@ -94,6 +96,10 @@ function ToDoApp({ user, onLogout }) {
           </li>
         ))}
       </ul>
+        
+        
+        </div>}
+      
     </div>
   );
 }

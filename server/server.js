@@ -1,108 +1,95 @@
+require('dotenv').config();
+
 const express = require('express');
 const bodyParser = require('body-parser');
-const mysql = require('mysql2');
 const bcrypt = require('bcrypt');
 const cors = require('cors');
+const Database = require('better-sqlite3');
 
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-const connection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: 'root',
-  database: 'todo_database'
-});
+const secretKey = process.env.SECRET_KEY;
 
-connection.connect((err) => {
-  if (err) throw err;
-  console.log('Connected to MySQL database!');
-  connection.query(`
-    CREATE TABLE IF NOT EXISTS users (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      username VARCHAR(255) NOT NULL UNIQUE,
-      email VARCHAR(255) NOT NULL,
-      password VARCHAR(255) NOT NULL
-    )
-  `);
-  connection.query(`
-    CREATE TABLE IF NOT EXISTS tasks (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      user_id INT NOT NULL,
-      description TEXT NOT NULL,
-      priority ENUM('low', 'medium', 'high') NOT NULL,
-      FOREIGN KEY (user_id) REFERENCES users(id)
-    )
-  `);
-});
+// Initialize the SQLite database
+const db = new Database('database.db');
+
+// Create tables if they don't exist
+db.exec(`
+  CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    email TEXT NOT NULL UNIQUE,
+    password TEXT NOT NULL
+  );
+  CREATE TABLE IF NOT EXISTS tasks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    description TEXT NOT NULL,
+    priority TEXT CHECK(priority IN ('low', 'medium', 'high')) NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+  );
+`);
 
 app.post('/register', async (req, res) => {
   const { username, email, password } = req.body;
   const hashedPassword = await bcrypt.hash(password, 10);
-  connection.query('INSERT INTO users (username, email, password) VALUES (?, ?, ?)', [username, email, hashedPassword], (err) => {
-    if (err) {
-      res.status(500).send('Registration failed');
-    } else {
-      res.status(200).send('User registered successfully');
-    }
-  });
+  try {
+    const stmt = db.prepare('INSERT INTO users (username, email, password) VALUES (?, ?, ?)');
+    stmt.run(username, email, hashedPassword);
+    res.status(200).send('User registered successfully');
+  } catch (err) {
+    res.status(500).send('Registration failed');
+  }
 });
 
-app.post('/login', (req, res) => {
-  const { username, password } = req.body;
-  connection.query('SELECT * FROM users WHERE username = ?', [username], async (err, results) => {
-    if (err || results.length === 0 || !await bcrypt.compare(password, results[0].password)) {
-      res.status(401).send('Invalid username or password');
+app.post('/login', async (req, res) => {
+  const { email, password } = req.body; // Changed from username to email
+  try {
+    const stmt = db.prepare('SELECT * FROM users WHERE email = ?'); // Changed to email
+    const user = stmt.get(email);
+    if (user && await bcrypt.compare(password, user.password)) {
+      res.status(200).json({ user });
     } else {
-      res.status(200).json({ user: results[0] });
+      res.status(401).send('Invalid email or password'); // Changed from username to email
     }
-  });
+  } catch (err) {
+    res.status(500).send('Login failed');
+  }
 });
 
 app.get('/tasks/:userId', (req, res) => {
   const userId = req.params.userId;
-  connection.query('SELECT * FROM tasks WHERE user_id = ?', [userId], (err, results) => {
-    if (err) {
-      res.status(500).send('Failed to fetch tasks');
-    } else {
-      res.status(200).json(results);
-    }
-  });
+  try {
+    const stmt = db.prepare('SELECT * FROM tasks WHERE user_id = ?');
+    const tasks = stmt.all(userId);
+    res.status(200).json({ tasks });
+  } catch (err) {
+    res.status(500).send('Error fetching tasks');
+  }
 });
 
 app.post('/tasks', (req, res) => {
-  const { user_id, description, priority } = req.body;
-  connection.query('INSERT INTO tasks (user_id, description, priority) VALUES (?, ?, ?)', [user_id, description, priority], (err, results) => {
-    if (err) {
-      res.status(500).send('Failed to add task');
-    } else {
-      res.status(200).json({ id: results.insertId });
-    }
-  });
+  const { userId, description, priority } = req.body;
+  try {
+    const stmt = db.prepare('INSERT INTO tasks (user_id, description, priority) VALUES (?, ?, ?)');
+    stmt.run(userId, description, priority);
+    res.status(200).send('Task added');
+  } catch (err) {
+    res.status(500).send('Error adding task');
+  }
 });
 
-app.delete('/tasks/:id', (req, res) => {
-  const id = req.params.id;
-  connection.query('DELETE FROM tasks WHERE id = ?', [id], (err) => {
-    if (err) {
-      res.status(500).send('Failed to delete task');
-    } else {
-      res.status(200).send('Task deleted successfully');
-    }
-  });
-});
-
-app.put('/tasks/:id', (req, res) => {
-  const id = req.params.id;
-  const { description, priority } = req.body;
-  connection.query('UPDATE tasks SET description = ?, priority = ? WHERE id = ?', [description, priority, id], (err) => {
-    if (err) {
-      res.status(500).send('Failed to update task');
-    } else {
-      res.status(200).send('Task updated successfully');
-    }
-  });
+app.delete('/tasks/:taskId', (req, res) => {
+  const taskId = req.params.taskId;
+  try {
+    const stmt = db.prepare('DELETE FROM tasks WHERE id = ?');
+    stmt.run(taskId);
+    res.status(200).send('Task deleted');
+  } catch (err) {
+    res.status(500).send('Error deleting task');
+  }
 });
 
 app.listen(3001, () => {
