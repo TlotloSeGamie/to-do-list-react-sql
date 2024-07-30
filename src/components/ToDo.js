@@ -7,6 +7,10 @@ function ToDoApp({ user, onLogout }) {
     description: '',
     priority: 'low',
   });
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [updateTaskId, setUpdateTaskId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredTasks, setFilteredTasks] = useState([]);
 
   const fetchTasks = async () => {
     try {
@@ -22,6 +26,14 @@ function ToDoApp({ user, onLogout }) {
     fetchTasks();
   }, []);
 
+  useEffect(() => {
+    setFilteredTasks(
+      tasks.filter(task =>
+        task.description.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    );
+  }, [searchTerm, tasks]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setNewTask({
@@ -32,6 +44,18 @@ function ToDoApp({ user, onLogout }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (newTask.description.trim() === '') {
+      alert("Task description cannot be empty");
+      return;
+    }
+    if (isUpdating) {
+      await handleUpdate(updateTaskId);
+    } else {
+      await handleAdd();
+    }
+  };
+
+  const handleAdd = async () => {
     console.log("Submitting task:", { user_id: user.id, ...newTask });
     try {
       const response = await axios.post('http://localhost:3001/tasks', {
@@ -62,11 +86,25 @@ function ToDoApp({ user, onLogout }) {
         description: newTask.description,
         priority: newTask.priority,
       });
-      setTasks(tasks.map(task => task.id === id ? { ...task, description: newTask.description, priority: newTask.priority } : task));
+      setTasks(tasks.map(task => 
+        task.id === id ? { ...task, description: newTask.description, priority: newTask.priority } : task
+      ));
       setNewTask({ description: '', priority: 'low' });
+      setIsUpdating(false);
+      setUpdateTaskId(null);
     } catch (error) {
       console.error("Error updating task:", error);
     }
+  };
+
+  const handleEdit = (task) => {
+    setNewTask({ description: task.description, priority: task.priority });
+    setIsUpdating(true);
+    setUpdateTaskId(task.id);
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
   };
 
   return (
@@ -74,6 +112,12 @@ function ToDoApp({ user, onLogout }) {
       <h2>Welcome, {user.username}</h2>
       <button onClick={onLogout}>Logout</button>
       <h4>To-Do List</h4>
+      <input
+        type="text"
+        placeholder="Search tasks"
+        value={searchTerm}
+        onChange={handleSearchChange}
+      />
       <form onSubmit={handleSubmit}>
         <input
           type="text"
@@ -87,16 +131,16 @@ function ToDoApp({ user, onLogout }) {
           <option value="medium">Medium</option>
           <option value="high">High</option>
         </select>
-        <button type="submit" onClick={handleSubmit}>Add Task</button>
+        <button type="submit">{isUpdating ? "Update Task" : "Add Task"}</button>
       </form>
-      {tasks.length === 0 ? <div></div> : (
+      {filteredTasks.length === 0 ? <div>No tasks</div> : (
         <div>
           <ul>
-            {tasks.map((task) => (
+            {filteredTasks.map((task) => (
               <li key={task.id} className={`task-${task.priority}`}>
                 <span>{task.description} - {task.priority}</span>
                 <button onClick={() => handleDelete(task.id)}>Delete</button>
-                <button onClick={() => handleUpdate(task.id)}>Update</button>
+                <button onClick={() => handleEdit(task)}>Edit</button>
               </li>
             ))}
           </ul>

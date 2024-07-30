@@ -1,5 +1,4 @@
 require('dotenv').config();
-
 const express = require('express');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
@@ -89,6 +88,18 @@ app.delete('/tasks/:taskId', (req, res) => {
     res.status(200).send('Task deleted');
   } catch (err) {
     res.status(500).send('Error deleting task');
+  }
+});
+
+app.put('/tasks/:taskId', (req, res) => {
+  const taskId = req.params.taskId;
+  const { description, priority } = req.body;
+  try {
+    const stmt = db.prepare('UPDATE tasks SET description = ?, priority = ? WHERE id = ?');
+    stmt.run(description, priority, taskId);
+    res.status(200).send('Task updated');
+  } catch (err) {
+    res.status(500).send('Error updating task');
   }
 });
 

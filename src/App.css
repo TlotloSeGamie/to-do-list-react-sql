@@ -227,15 +227,17 @@ input[type="text"] {
 }
 
 .task-low {
-  color: green;
+  display: flex;
+  background-color: green;
 }
 
 .task-medium {
-  color: yellow;
+  display: flex;
+  background-color: yellow;
 }
 
 .task-high {
-  color: red;
+  background-color: red;
 }
 
 select {
