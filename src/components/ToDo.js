@@ -11,7 +11,7 @@ function ToDoApp({ user, onLogout }) {
   const fetchTasks = async () => {
     try {
       const response = await axios.get(`http://localhost:3001/tasks/${user.id}`);
-      console.log(response);
+      console.log("Fetched tasks:", response.data.tasks);
       setTasks(response.data.tasks);
     } catch (error) {
       console.error("Error fetching tasks:", error);
@@ -32,11 +32,14 @@ function ToDoApp({ user, onLogout }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("Submitting task:", { user_id: user.id, ...newTask });
     try {
       const response = await axios.post('http://localhost:3001/tasks', {
         user_id: user.id,
-        ...newTask,
+        description: newTask.description,
+        priority: newTask.priority,
       });
+      console.log("Response:", response.data);
       setTasks([...tasks, { id: response.data.id, ...newTask }]);
       setNewTask({ description: '', priority: 'low' });
     } catch (error) {
@@ -84,22 +87,21 @@ function ToDoApp({ user, onLogout }) {
           <option value="medium">Medium</option>
           <option value="high">High</option>
         </select>
-        <button type="submit">Add Task</button>
+        <button type="submit" onClick={handleSubmit}>Add Task</button>
       </form>
-      {tasks.length == 0 ? <div> </div>: <div> 
-        <ul>
-        {tasks.map((task) => (
-          <li key={task.id}>
-            <span>{task.description} - {task.priority}</span>
-            <button onClick={() => handleDelete(task.id)}>Delete</button>
-            <button onClick={() => handleUpdate(task.id)}>Update</button>
-          </li>
-        ))}
-      </ul>
-        
-        
-        </div>}
-      
+      {tasks.length === 0 ? <div></div> : (
+        <div>
+          <ul>
+            {tasks.map((task) => (
+              <li key={task.id} className={`task-${task.priority}`}>
+                <span>{task.description} - {task.priority}</span>
+                <button onClick={() => handleDelete(task.id)}>Delete</button>
+                <button onClick={() => handleUpdate(task.id)}>Update</button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

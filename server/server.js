@@ -12,10 +12,8 @@ app.use(bodyParser.json());
 
 const secretKey = process.env.SECRET_KEY;
 
-// Initialize the SQLite database
 const db = new Database('database.db');
 
-// Create tables if they don't exist
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -45,14 +43,14 @@ app.post('/register', async (req, res) => {
 });
 
 app.post('/login', async (req, res) => {
-  const { email, password } = req.body; // Changed from username to email
+  const { email, password } = req.body;
   try {
-    const stmt = db.prepare('SELECT * FROM users WHERE email = ?'); // Changed to email
+    const stmt = db.prepare('SELECT * FROM users WHERE email = ?'); 
     const user = stmt.get(email);
     if (user && await bcrypt.compare(password, user.password)) {
       res.status(200).json({ user });
     } else {
-      res.status(401).send('Invalid email or password'); // Changed from username to email
+      res.status(401).send('Invalid email or password');
     }
   } catch (err) {
     res.status(500).send('Login failed');
@@ -71,12 +69,14 @@ app.get('/tasks/:userId', (req, res) => {
 });
 
 app.post('/tasks', (req, res) => {
-  const { userId, description, priority } = req.body;
+  const { user_id, description, priority } = req.body;
+  console.log("Received task data:", req.body); 
   try {
     const stmt = db.prepare('INSERT INTO tasks (user_id, description, priority) VALUES (?, ?, ?)');
-    stmt.run(userId, description, priority);
-    res.status(200).send('Task added');
+    const result = stmt.run(user_id, description, priority);
+    res.status(200).send({ id: result.lastInsertRowid });
   } catch (err) {
+    console.error("Error adding task:", err);
     res.status(500).send('Error adding task');
   }
 });

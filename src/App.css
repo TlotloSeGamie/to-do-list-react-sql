@@ -226,6 +226,18 @@ input[type="text"] {
   background: #fff;
 }
 
+.task-low {
+  color: green;
+}
+
+.task-medium {
+  color: yellow;
+}
+
+.task-high {
+  color: red;
+}
+
 select {
   padding: 10px;
   border: 2px solid #ccc;
