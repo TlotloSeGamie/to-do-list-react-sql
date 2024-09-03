@@ -1,0 +1,72 @@
+.form-container {
+    width: 70%;
+    background: #fff;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    margin-bottom: 2rem;
+}
+  
+.form-container h4, .form-container h3 {
+    margin-bottom: 1rem;
+    color: #333;
+}
+  
+.form-container input, .form-container select {
+    width: 100%;
+    padding: 0.75rem;
+    margin: 0.5rem 0;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    transition: border-color 0.3s;
+}
+  
+.form-container input:focus, .form-container select:focus {
+    border-color: #ff6f61;
+    outline: none;
+}
+  
+.form-container .btn {
+    background-color: #ff6f61;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.3s;
+}
+  
+.form-container .btn:hover {
+    background-color: #e55b50;
+    transform: scale(1.05);
+}
+
+.logs {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+.registers-link {
+    color: #000000;
+    text-decoration: none;
+}
+  
+.registers-link:hover {
+    color: #e55b50;
+    transform: scale(1.05);
+}
+
+.close {
+    color: green;
+    background-color: #000000;
+}
+
+.logins-link {
+    color: #000000;
+    text-decoration: none;
+}
+  
+.logins-link:hover {
+    color: #e55b50;
+    transform: scale(1.05);
+}

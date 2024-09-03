@@ -1,46 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import './App.css'
-import Register from './components/Register';
-import Login from './components/Login';
-import ToDoApp from './components/ToDo';
+import React, { useState } from "react";
+import "./App.css"
+import Navbar from "./components/Navbar";
+import Login from "./components/Login";
+import Register from "./components/Register";
 
 function App() {
-  const [currentForm, setCurrentForm] = useState('login');
-  const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')));
+  const [currentForm, setCurrentForm] = useState(null);
 
   const handleFormSwitch = (formName) => {
     setCurrentForm(formName);
   };
 
-  const handleLogin = (loggedInUser) => {
-    setUser(loggedInUser);
-    localStorage.setItem('user', JSON.stringify(loggedInUser));
+  const closeForm = () => {
+    setCurrentForm(null);
   };
-
-  const handleLogout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
-    setCurrentForm('login');
-  };
-
-  useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem('user'));
-    if (storedUser) {
-      setUser(storedUser);
-    }
-  }, []);
 
   return (
-    <div className="App">
-      {!user ? (
-        currentForm === 'login' ? (
-          <Login onFormSwitch={handleFormSwitch} onLogin={handleLogin} />
-        ) : (
-          <Register onFormSwitch={handleFormSwitch} />
-        )
-      ) : (
-        <ToDoApp user={user} onLogout={handleLogout} />
-      )}
+    <div className="app-container">
+      <Navbar onFormSwitch={handleFormSwitch} />
+      {currentForm === 'login' && <Login onFormSwitch={handleFormSwitch} onLogin={closeForm} />}
+      {currentForm === 'register' && <Register onFormSwitch={handleFormSwitch} />}
+      {currentForm && <button onClick={closeForm} className="close-form-btn">Close</button>}
     </div>
   );
 }

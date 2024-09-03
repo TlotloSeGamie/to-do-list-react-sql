@@ -1,0 +1,430 @@
+import React from 'react';
+
+function Navbar({ user, onLogout, onFormSwitch, currentForm }) {
+  return (
+    <div className="navbar">
+      <div className='logo'>
+        <h1>To Do Task Master</h1>
+      </div>
+      <div className="links">
+        {!user ? (
+          <>
+            <button 
+              className={`nav-link ${currentForm === 'login' ? 'active' : ''}`}
+              onClick={() => onFormSwitch('login')}
+            >
+              Login
+            </button>
+            <button 
+              className={`nav-link ${currentForm === 'register' ? 'active' : ''}`}
+              onClick={() => onFormSwitch('register')}
+            >
+              Register
+            </button>
+          </>
+        ) : (
+          <button className="nav-link" onClick={onLogout}>
+            Logout
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default Navbar;
+
+import React, { useState } from "react";
+import Login from "./Login";
+import Register from "./Register";
+import ToDoApp from "./ToDo";
+
+function Home() {
+  const [currentForm, setCurrentForm] = useState('login');
+  const [user, setUser] = useState(null);
+
+  const handleLogin = (user) => {
+    setUser(user);
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    setCurrentForm('login');
+  };
+
+  return (
+    <div className="home-container">
+      <div className="navbar">
+        {user && <button className="btn" onClick={handleLogout}>Logout</button>}
+        <h1>To Do Task Master</h1>
+      </div>
+      {!user ? (
+        currentForm === 'login' ? (
+          <Login onFormSwitch={setCurrentForm} onLogin={handleLogin} />
+        ) : (
+          <Register onFormSwitch={setCurrentForm} />
+        )
+      ) : (
+        <div className="home-content">
+          <ToDoApp user={user} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default Home;
+
+const [currentForm, setCurrentForm] = useState('login');
+  const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')));
+
+  const handleFormSwitch = (formName) => {
+    setCurrentForm(formName);
+  };
+
+  const handleLogin = (loggedInUser) => {
+    setUser(loggedInUser);
+    localStorage.setItem('user', JSON.stringify(loggedInUser));
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem('user');
+    setCurrentForm('login');
+  };
+
+  useEffect(() => {
+    const storedUser = JSON.parse(localStorage.getItem('user'));
+    if (storedUser) {
+      setUser(storedUser);
+    }
+  }, []);
+{!user ? (
+    currentForm === 'login' ? (
+      <Login onFormSwitch={handleFormSwitch} onLogin={handleLogin} />
+    ) : (
+      <Register onFormSwitch={handleFormSwitch} />
+    )
+  ) : (
+    <ToDoApp user={user} onLogout={handleLogout} />
+  )}
+
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #f0f8ff, #d0e8f2);
+  }
+  
+  .App {
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+  }
+  
+  .home-container {
+    position: relative;
+    overflow: hidden;
+    height: 100vh; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(45deg, #6d6260, #9b8d82); 
+    animation: glowing 10s infinite alternate;
+    color: #333;
+  }
+  
+  @keyframes glowing {
+    0% {
+      background: linear-gradient(45deg, #928987, #bebebd);
+    }
+    50% {
+      background: linear-gradient(45deg, #e4dddd, #64615b); /* Slightly darker */
+    }
+    100% {
+      background: linear-gradient(45deg, #aca7a5ab, #6b6968);
+    }
+  }
+  
+  .home-content {
+    position: relative;
+    z-index: 1;
+  }
+  
+  .navbar {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    color: #fff;
+    font-size: 2em;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+  }
+  
+  .navbar h1 {
+    margin: 0;
+    position: relative;
+    padding: 20px;
+  }
+  
+  .form-container {
+    background: #fff;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    margin-bottom: 2rem;
+  }
+  
+  .form-container h4, .form-container h3 {
+    margin-bottom: 1rem;
+    color: #333;
+  }
+  
+  .form-container input, .form-container select {
+    width: 100%;
+    padding: 0.75rem;
+    margin: 0.5rem 0;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    transition: border-color 0.3s;
+  }
+  
+  .form-container input:focus, .form-container select:focus {
+    border-color: #ff6f61;
+    outline: none;
+  }
+  
+  .form-container .btn {
+    background-color: #ff6f61;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.3s;
+  }
+  
+  .form-container .btn:hover {
+    background-color: #e55b50;
+    transform: scale(1.05);
+  }
+  
+  .todo-app {
+    max-width: 600px;
+    margin: auto;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(to right, #ff7e5f, #feb47b); /* Orangered-greyish gradient */
+    color: #333;
+    position: relative;
+    overflow: hidden;
+  }
+  .todo-app::before {
+    content: '';
+    position: absolute;
+    top: -10%;
+    left: -10%;
+    width: 120%;
+    height: 120%;
+    background: radial-gradient(circle, rgba(255, 94, 77, 0.3) 0%, rgba(255, 94, 77, 0) 100%);
+    z-index: -1;
+    filter: blur(30px);
+  }
+  
+  .todo-app h2 {
+    margin-bottom: 1rem;
+    color: #333;
+  }
+  
+  .todo-app input[type="text"], .todo-app select {
+    width: 100%;
+    padding: 0.75rem;
+    margin: 0.5rem 0;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    transition: border-color 0.3s;
+  }
+  
+  .todo-app input:focus, .todo-app select:focus {
+    border-color: #ff6f61;
+    outline: none;
+  }
+  
+  .todo-app .btn {
+    background-color: #ff6f61;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.3s;
+    margin-top: 0.5rem;
+  }
+  
+  .todo-app .btn:hover {
+    background-color: #7fd148;
+    transform: scale(1.05);
+  }
+  
+  .todo-app ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .todo-app li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem;
+    border-radius: 10px;
+    margin: 0.5rem 0;
+    background-color: #f7f9fc;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    color: #333;
+  }
+  
+  .todo-app li:nth-child(odd) {
+    background-color: #e8f5f2;
+  }
+  
+  .todo-app li:nth-child(even) {
+    background-color: #fbeef0;
+  }
+  
+  .todo-app li input[type="text"] {
+    border: none;
+    background: transparent;
+    padding: 0.5rem;
+    width: 70%;
+    color: #333;
+  }
+  
+  .todo-app li select {
+    border: none;
+    background: transparent;
+    padding: 0.5rem;
+    width: 20%;
+    color: #333;
+  }
+  
+  .todo-app li button {
+    background-color: #ff6f61;
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.3s;
+  }
+  
+  .todo-app li button:hover {
+    background-color: #e55b50;
+    transform: scale(1.05);
+  }
+  
+  .task-inputs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  input[type="text"] {
+    flex: 1;
+    padding: 10px;
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    background: #fff;
+  }
+  
+  .task-low {
+    background-color: green;
+  }
+  
+  .task-medium {
+    background-color: yellow;
+  }
+  
+  .task-high {
+    background-color: red;
+  }
+  
+  select {
+    padding: 10px;
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    background: #fff;
+  }
+  
+  button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    color: #fff;
+    background-color: #ff6f61;
+    cursor: pointer;
+    transition: background-color 0.3s, box-shadow 0.3s;
+  }
+  
+  button:hover {
+    background-color: #ff4b3a;
+    box-shadow: 0 0 10px rgba(255, 94, 77, 0.8);
+  }
+  
+  .home-container .navbar .btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    color: #fff;
+    background-color: #ff6f61;
+    cursor: pointer;
+    transition: background-color 0.3s, box-shadow 0.3s;
+  }
+  
+  .home-container .navbar .btn:hover {
+    background-color: #ff4b3a;
+    box-shadow: 0 0 10px rgba(255, 94, 77, 0.8);
+  }
+  
+  ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  li {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #f8f9fa;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  li input[type="text"] {
+    flex: 1;
+    border: none;
+    background-color: transparent;
+    padding: 5px;
+    font-size: 16px;
+  }
+  
+  li select {
+    margin-left: 10px;
+  }
+  
+  li button {
+    margin-left: 10px;
+    background-color: #dc3545;
+    transition: background-color 0.3s, box-shadow 0.3s;
+  }
+  
+  li button:hover {
+    background-color: #c82333; 
+    box-shadow: 0 0 10px rgba(220, 53, 69, 0.8);
+  }

@@ -112,12 +112,6 @@ function ToDoApp({ user, onLogout }) {
       <h2>Welcome, {user.username}</h2>
       <button onClick={onLogout}>Logout</button>
       <h4>To-Do List</h4>
-      <input
-        type="text"
-        placeholder="Search tasks"
-        value={searchTerm}
-        onChange={handleSearchChange}
-      />
       <form onSubmit={handleSubmit}>
         <input
           type="text"
@@ -126,13 +120,19 @@ function ToDoApp({ user, onLogout }) {
           value={newTask.description}
           onChange={handleChange}
         />
+        
         <select name="priority" value={newTask.priority} onChange={handleChange}>
           <option value="low">Low</option>
           <option value="medium">Medium</option>
           <option value="high">High</option>
         </select>
         <button type="submit">{isUpdating ? "Update Task" : "Add Task"}</button>
-      </form>
+      </form><input
+          type="text"
+          placeholder="Search tasks"
+          value={searchTerm}
+          onChange={handleSearchChange}
+        />
       {filteredTasks.length === 0 ? <div>No tasks</div> : (
         <div>
           <ul>

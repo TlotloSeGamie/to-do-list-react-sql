@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from 'axios';
+import "./Login.css"
 
 function Register({ onFormSwitch }) {
   const [formData, setFormData] = useState({
@@ -91,8 +92,11 @@ function Register({ onFormSwitch }) {
           onChange={handleChange}
         />
         {errors.password && <span>{errors.password}</span>}
-        <button type="submit" className="btn">Register</button>
-        <button className="btn link-btn" onClick={() => onFormSwitch('login')}>Already have an account? Login here.</button>
+        <div className="logs">
+          <button type="submit" className="btn">Register</button>
+        <a href="#" className="logins-link" onClick={() => onFormSwitch('login')}>Already have an account? Login here.</a>
+        </div>
+        
       </form>
     </div>
   );

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from 'axios';
+import "./Login.css"
 
 function Login({ onFormSwitch, onLogin }) {
   const [formData, setFormData] = useState({
@@ -39,7 +40,7 @@ function Login({ onFormSwitch, onLogin }) {
 
     try {
       const response = await axios.post('http://localhost:3001/login', {
-        email: formData.email, // Ensure email is used
+        email: formData.email,
         password: formData.password
       });
 
@@ -72,8 +73,10 @@ function Login({ onFormSwitch, onLogin }) {
           onChange={handleChange}
         />
         {errors.password && <span>{errors.password}</span>}
+        <div className="logs">
         <button type="submit" className="btn">Login</button>
-        <button className="btn link-btn" onClick={() => onFormSwitch('register')}>Don't have an account? Register here.</button>
+        <a href="#" className="registers-link" onClick={() => onFormSwitch('register')}>Don't have an account? Register here.</a>
+        </div>
       </form>
     </div>
   );
