@@ -1,6 +1,6 @@
 const registerUser = async (username, email, password) => {
     try {
-      const response = await fetch('http://localhost:3001/register', {
+      const response = await fetch('http://localhost:3005/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -23,7 +23,7 @@ const registerUser = async (username, email, password) => {
   
   const loginUser = async (email, password) => {
     try {
-      const response = await fetch('http://localhost:3001/login', {
+      const response = await fetch('http://localhost:3005/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -53,7 +53,7 @@ const registerUser = async (username, email, password) => {
     }
   
     try {
-      const response = await fetch('http://localhost:3001/tasks', {
+      const response = await fetch('http://localhost:3005/tasks', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -83,7 +83,7 @@ const registerUser = async (username, email, password) => {
     }
   
     try {
-      const response = await fetch('http://localhost:3001/tasks', {
+      const response = await fetch('http://localhost:3005/tasks', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`

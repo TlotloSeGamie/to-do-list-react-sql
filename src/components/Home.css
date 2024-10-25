@@ -1,0 +1,93 @@
+.main {
+    width: 100%;
+    height: 100vh;
+}
+
+.home-container {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 50px 20px;
+    background-color: #f3f4f6;
+    color: #333;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #f0f8ff, #d0e8f2);
+  }
+  
+  .hero {
+    max-width: 600px;
+    margin-bottom: 40px;
+  }
+  
+  .hero h1 {
+    font-size: 2.5em;
+    color: #2c3e50;
+    font-weight: bold;
+  }
+  
+  .hero h1 span {
+    color: #4CAF50;
+  }
+  
+  .hero p {
+    font-size: 1.2em;
+    color: #555;
+    margin-top: 10px;
+    line-height: 1.5;
+  }
+  
+  .get-started-btn {
+    margin-top: 20px;
+    padding: 12px 30px;
+    font-size: 1.1em;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .get-started-btn:hover {
+    background-color: #45a049;
+  }
+  
+  .features {
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    width: 100%;
+  }
+  
+  .features h2 {
+    font-size: 1.8em;
+    color: #2c3e50;
+    margin-bottom: 20px;
+  }
+  
+  .features ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .features li {
+    font-size: 1.1em;
+    color: #555;
+    margin: 10px 0;
+    position: relative;
+    padding-left: 20px;
+  }
+  
+  .features li:before {
+    content: "✔";
+    color: #4CAF50;
+    font-size: 1.2em;
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+  
