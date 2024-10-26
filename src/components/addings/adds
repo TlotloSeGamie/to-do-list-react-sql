@@ -1,0 +1,737 @@
+/* .main {
+    width: 100%;
+    height: 100vh;
+}
+
+.home-container {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 50px 20px;
+    background-color: #f3f4f6;
+    color: #333;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #f0f8ff, #d0e8f2);
+  }
+  
+  .hero {
+    max-width: 600px;
+    margin-bottom: 40px;
+  }
+  
+  .hero h1 {
+    font-size: 2.5em;
+    color: #2c3e50;
+    font-weight: bold;
+  }
+  
+  .hero h1 span {
+    color: #4CAF50;
+  }
+  
+  .hero p {
+    font-size: 1.2em;
+    color: #555;
+    margin-top: 10px;
+    line-height: 1.5;
+  }
+  
+  .get-started-btn {
+    margin-top: 20px;
+    padding: 12px 30px;
+    font-size: 1.1em;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .get-started-btn:hover {
+    background-color: #45a049;
+  }
+  
+  .features {
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    width: 100%;
+  }
+  
+  .features h2 {
+    font-size: 1.8em;
+    color: #2c3e50;
+    margin-bottom: 20px;
+  }
+  
+  .features ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .features li {
+    font-size: 1.1em;
+    color: #555;
+    margin: 10px 0;
+    position: relative;
+    padding-left: 20px;
+  }
+  
+  .features li:before {
+    content: "✔";
+    color: #4CAF50;
+    font-size: 1.2em;
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+  
+
+  import React from "react";
+import "./Home.css";
+
+function Home({ onGetStarted }) {
+  return (
+    <div className="main">
+        <div className="home-container">
+          <div className="hero">
+            <h1>Welcome to <span>TaskMaster</span></h1>
+            <p>
+              Manage your day efficiently with <span>To Do Task Master</span> – your ultimate tool for organizing and prioritizing tasks!
+            </p>
+            <button className="get-started-btn" onClick={onGetStarted} >Get Started</button>
+          </div>
+          <div className="features">
+            <h2>Why Choose Us?</h2>
+            <ul>
+              <li>Organize your tasks easily</li>
+              <li>Prioritize what matters most</li>
+              <li>Track your progress seamlessly</li>
+            </ul>
+          </div>
+        </div>
+    </div>
+  );
+}
+
+export default Home;
+
+
+import React, { useState } from "react";
+import axios from 'axios';
+import "./Login.css"
+
+function Login({ onFormSwitch, onLogin }) {
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  });
+
+  const [errors, setErrors] = useState({});
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const validationErrors = {};
+
+    if (!formData.email.trim()) {
+      validationErrors.email = "Email is required";
+    }
+
+    if (!formData.password.trim()) {
+      validationErrors.password = "Password is required";
+    } else if (formData.password.length < 8) {
+      validationErrors.password = "Password should be at least 8 characters";
+    }
+
+    setErrors(validationErrors);
+
+    if (Object.keys(validationErrors).length > 0) {
+      return;
+    }
+
+    try {
+      const response = await axios.post('http://localhost:3005/login', {
+        email: formData.email,
+        password: formData.password
+      });
+
+      onLogin(response.data.user);
+    } catch (error) {
+      setErrors({ form: 'Invalid email or password' });
+    }
+  };
+
+  return (
+    <div>
+      <form className="form-container" onSubmit={handleSubmit}>
+        <h4>Sign In</h4>
+        {errors.form && <span>{errors.form}</span>}
+        <input
+          type="text"
+          placeholder="Email"
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
+        />
+        {errors.email && <span>{errors.email}</span>}
+        <input
+          type="password"
+          placeholder="Password"
+          name="password"
+          value={formData.password}
+          onChange={handleChange}
+        />
+        {errors.password && <span>{errors.password}</span>}
+        <div className="logs">
+        <button type="submit" className="btn">Login</button>
+        <a href="#" className="registers-link" onClick={() => onFormSwitch('register')}>Don't have an account? Register here.</a>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+export default Login;
+
+.form-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 20px;
+    border: 1px solid #ccc;
+    z-index: 1000;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+.close-form-btn {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background-color: red;
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    z-index: 1001;
+}
+
+.nav-top {
+    background-color: #333;
+    color: white;
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.ama-links a {
+    color: white;
+    margin-left: 10px;
+    cursor: pointer;
+    text-decoration: none;
+}  
+
+.form-container {
+    background: #fff;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    margin-bottom: 2rem;
+}
+  
+.form-container h4, .form-container h3 {
+    margin-bottom: 1rem;
+    color: #333;
+}
+  
+.form-container input, .form-container select {
+    width: 100%;
+    padding: 0.75rem;
+    margin: 0.5rem 0;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    transition: border-color 0.3s;
+}
+
+.form-container input:focus, .form-container select:focus {
+border-color: #4CAF50;
+outline: none;
+}
+
+.form-container .btn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.3s;
+}
+
+.form-container .btn:hover {
+    background-color: #e55b50;
+    transform: scale(1.05);
+}
+
+.login-link {
+    background-color: #4CAF50;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.3s;
+}
+
+.login-link:hover {
+    background-color: #4CAF50;
+    transform: scale(1.05);
+}
+
+.register-link {
+    background-color: #4CAF50;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.3s;
+}
+
+.register-link:hover {
+    background-color: #4CAF50;
+    transform: scale(1.05);
+}
+
+import React from "react";
+import { Link } from "react-router-dom"; // Import Link
+import "./Navbar.css";
+import Profile from "./Profile";
+
+function Navbar({ onFormSwitch, user }) {
+  return (
+    <div className="nav-top">
+      <div className="logo">
+        <h1>To Do Task Master</h1>
+      </div>
+      <div className="profile-section">
+        {user ? (
+          <Profile user={user} />
+        ) : (
+          <div className="auth-links">
+            <Link to="/login" className="login-link">Login</Link>
+            <Link to="/register" className="register-link">Register</Link>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default Navbar;
+
+
+.profile-container {
+    width: 300px;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    text-align: center;
+    background-color: #f9f9f9;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.profile-image {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin-bottom: 15px;
+    object-fit: cover;
+}
+
+.profile-name {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 5px;
+    text-transform: capitalize;
+}
+
+.profile-email {
+    font-size: 16px;
+    color: #777;
+    margin-bottom: 20px;
+}
+
+.task-stats {
+    font-size: 18px;
+    color: #555;
+}
+
+
+import React from 'react';
+import './Profile.css';
+
+const Profile = ({ user }) => {
+    return (
+        <div className="profile-container">
+            <img src={user.profilePicture} alt="Profile" className="profile-image" />
+            <h2 className="profile-name">{user.username}</h2>
+            <p className="profile-email">{user.email}</p>
+            <div className="task-stats">
+                <p>Tasks Completed: {user.tasksCompleted}</p>
+            </div>
+        </div>
+    );
+};
+
+export default Profile;
+
+
+import React, { useState } from "react";
+import axios from 'axios';
+import "./Login.css"
+
+function Register({ onFormSwitch }) {
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    password: '',
+  });
+
+  const [errors, setErrors] = useState({});
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const validationErrors = {};
+
+    if (!formData.username.trim()) {
+      validationErrors.username = "Username is required";
+    }
+
+    if (!formData.email.trim()) {
+      validationErrors.email = "Email is required";
+    }
+
+    if (!formData.password.trim()) {
+      validationErrors.password = "Password is required";
+    } else if (formData.password.length < 8) {
+      validationErrors.password = "Password should be at least 8 characters";
+    }
+
+    setErrors(validationErrors);
+
+    if (Object.keys(validationErrors).length > 0) {
+      return;
+    }
+
+    try {
+      await axios.post('http://localhost:3005/register', {
+        username: formData.username,
+        email: formData.email,
+        password: formData.password
+      });
+
+      onFormSwitch('login');
+    } catch (error) {
+      if (error.response && error.response.data.error) {
+        setErrors({ form: error.response.data.error });
+      } else {
+        setErrors({ form: 'An error occurred' });
+      }
+    }
+  };
+
+  return (
+    <div>
+      <form className="form-container" onSubmit={handleSubmit}>
+        <h4>Register</h4>
+        {errors.form && <span>{errors.form}</span>}
+        <input
+          type="text"
+          placeholder="Username"
+          name="username"
+          value={formData.username}
+          onChange={handleChange}
+        />
+        {errors.username && <span>{errors.username}</span>}
+        <input
+          type="text"
+          placeholder="Email"
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
+        />
+        {errors.email && <span>{errors.email}</span>}
+        <input
+          type="password"
+          placeholder="Password"
+          name="password"
+          value={formData.password}
+          onChange={handleChange}
+        />
+        {errors.password && <span>{errors.password}</span>}
+        <div className="logs">
+          <button type="submit" className="btn">Register</button>
+        <a href="#" className="logins-link" onClick={() => onFormSwitch('login')}>Already have an account? Login here.</a>
+        </div>
+        
+      </form>
+    </div>
+  );
+}
+
+export default Register;
+
+.main {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.todo-app {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    background-color: #f9f9f9;
+    font-family: Arial, sans-serif;
+  }
+  
+  .todo-app h2 {
+    text-align: center;
+    color: #333;
+    font-size: 24px;
+  }
+  
+  .todo-app input[type="text"],
+  .todo-app select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 8px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+  }
+  
+  .todo-app .btn {
+    width: 100%;
+    padding: 10px;
+    background-color: #4CAF50;
+    color: white;
+    font-size: 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .todo-app .btn:hover {
+    background-color: #45a049;
+  }
+  
+  .todo-app ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .todo-app li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+    margin: 8px 0;
+    background-color: #ffffff;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .todo-app li input[type="text"] {
+    flex: 1;
+    margin-right: 10px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  
+  .todo-app li select {
+    padding: 6px;
+    margin-right: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  
+  .todo-app li button {
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .todo-app li button:hover {
+    background-color: #ff3333;
+  }
+  
+  .todo-app li[style*="color: red"] {
+    background-color: #ffe6e6;
+  }
+  
+  .todo-app li[style*="color: yellow"] {
+    background-color: #fffce6;
+  }
+  
+  .todo-app li[style*="color: green"] {
+    background-color: #e6ffe6;
+  }
+  
+
+  import React, { useState } from 'react';
+import './ToDo.css'
+
+function ToDoApp() {
+  const [tasks, setTasks] = useState([]);
+  const [newTask, setNewTask] = useState({ description: '', priority: 'low' });
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const addTask = () => {
+    if (newTask.description.trim() !== '') {
+      setTasks([...tasks, newTask]);
+      setNewTask({ description: '', priority: 'low' });
+    }
+  };
+
+  const removeTask = (index) => {
+    const newTasks = tasks.filter((task, i) => i !== index);
+    setTasks(newTasks);
+  };
+
+  const updateTask = (index, updatedTask) => {
+    const newTasks = tasks.map((task, i) => (i === index ? updatedTask : task));
+    setTasks(newTasks);
+  };
+
+  const filteredTasks = tasks.filter(task =>
+    task.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const priorityColor = {
+    high: 'red',
+    medium: 'yellow',
+    low: 'green'
+  };
+
+  return (
+    <div className='main'>
+      <div className="todo-app">
+        <h2>My To-Do List</h2>
+        <input
+          type="text"
+          value={newTask.description}
+          onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+          placeholder="Add a new task"
+        />
+        <select
+          value={newTask.priority}
+          onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
+        >
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+        </select>
+        <button onClick={addTask} className='btn'>Add Task</button>
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Search tasks"
+        />
+        <ul>
+          {filteredTasks.map((task, index) => (
+            <li key={index} style={{ color: priorityColor[task.priority] }}>
+              <input
+                type="text"
+                value={task.description}
+                onChange={(e) => updateTask(index, { ...task, description: e.target.value })}
+              />
+              <select
+                value={task.priority}
+                onChange={(e) => updateTask(index, { ...task, priority: e.target.value })}
+              >
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+              </select>
+              <button onClick={() => removeTask(index)}>Remove</button>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+export default ToDoApp;
+
+
+import React, { useState } from "react";
+import "./App.css"
+import Navbar from "./components/Navbar";
+import Login from "./components/Login";
+import Register from "./components/Register";
+import ToDo from "./components/ToDo"
+import Home from "./components/Home";
+
+function App() {
+  const [currentForm, setCurrentForm] = useState(null);
+
+  const handleFormSwitch = (formName) => {
+    setCurrentForm(formName);
+  };
+
+  const closeForm = () => {
+    setCurrentForm(null);
+  };
+
+  return (
+    <div className="app-container">
+      <Navbar onFormSwitch={handleFormSwitch} />
+      {currentForm === 'login' && <Login onFormSwitch={handleFormSwitch} onLogin={closeForm} />}
+      {currentForm === 'register' && <Register onFormSwitch={handleFormSwitch} />}
+      {currentForm && <button onClick={closeForm} className="close-form-btn">Close</button>}
+      <Home />
+    </div>
+  );
+}
+
+export default App; */
