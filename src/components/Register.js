@@ -44,7 +44,7 @@ function Register({ onFormSwitch }) {
     }
 
     try {
-      await axios.post('http://localhost:3001/register', {
+      await axios.post('http://localhost:3005/register', {
         username: formData.username,
         email: formData.email,
         password: formData.password
