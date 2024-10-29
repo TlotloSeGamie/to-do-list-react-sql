@@ -1,14 +1,15 @@
 import React, { useState } from "react";
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import "./Login.css"
+import "./Login.css";
 
 function Login({ onFormSwitch, onLogin }) {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
-
   const [errors, setErrors] = useState({});
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -39,12 +40,13 @@ function Login({ onFormSwitch, onLogin }) {
     }
 
     try {
-      const response = await axios.post('http://localhost:3001/login', {
+      const response = await axios.post('http://localhost:3005/login', {
         email: formData.email,
         password: formData.password
       });
 
       onLogin(response.data.user);
+      navigate('/todo'); 
     } catch (error) {
       setErrors({ form: 'Invalid email or password' });
     }
@@ -60,7 +62,6 @@ function Login({ onFormSwitch, onLogin }) {
           type="text"
           placeholder="Email"
           name="email"
-          value={formData.email}
           onChange={handleChange}
         />
         {errors.email && <span>{errors.email}</span>}
@@ -69,13 +70,12 @@ function Login({ onFormSwitch, onLogin }) {
           type="password"
           placeholder="Password"
           name="password"
-          value={formData.password}
           onChange={handleChange}
         />
         {errors.password && <span>{errors.password}</span>}
         <div className="logs">
-        <button type="submit" className="btn">Login</button>
-        <a href="#" className="registers-link" onClick={() => onFormSwitch('register')}>Don't have an account? Register here.</a>
+          <button type="submit" className="btn">Login</button>
+          <a href="#" className="registers-link" onClick={() => onFormSwitch('register')}>Don't have an account? Register here.</a>
         </div>
       </form>
     </div>

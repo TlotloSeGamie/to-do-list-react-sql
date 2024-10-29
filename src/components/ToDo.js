@@ -1,26 +1,37 @@
 import React, { useState } from 'react';
-import './ToDo.css'
+import './ToDo.css';
 
 function ToDoApp() {
   const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState({ description: '', priority: 'low' });
   const [searchTerm, setSearchTerm] = useState('');
+  const [editingIndex, setEditingIndex] = useState(null); 
 
   const addTask = () => {
-    if (newTask.description.trim() !== '') {
+    if (newTask.description.trim()) {
       setTasks([...tasks, newTask]);
-      setNewTask({ description: '', priority: 'low' });
+      resetNewTask();
     }
   };
 
   const removeTask = (index) => {
-    const newTasks = tasks.filter((task, i) => i !== index);
-    setTasks(newTasks);
+    setTasks(tasks.filter((_, i) => i !== index));
   };
 
-  const updateTask = (index, updatedTask) => {
-    const newTasks = tasks.map((task, i) => (i === index ? updatedTask : task));
-    setTasks(newTasks);
+  const startEditing = (index) => {
+    setNewTask(tasks[index]); 
+    setEditingIndex(index);
+  };
+
+  const updateTask = () => {
+    const updatedTasks = tasks.map((task, i) => (i === editingIndex ? newTask : task));
+    setTasks(updatedTasks);
+    resetNewTask();
+  };
+
+  const resetNewTask = () => {
+    setNewTask({ description: '', priority: 'low' });
+    setEditingIndex(null); 
   };
 
   const filteredTasks = tasks.filter(task =>
@@ -34,47 +45,46 @@ function ToDoApp() {
   };
 
   return (
-    <div className='main'>
+    <div className="main">
       <div className="todo-app">
         <h2>My To-Do List</h2>
-        <input
-          type="text"
-          value={newTask.description}
-          onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-          placeholder="Add a new task"
-        />
-        <select
-          value={newTask.priority}
-          onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
-        >
-          <option value="high">High</option>
-          <option value="medium">Medium</option>
-          <option value="low">Low</option>
-        </select>
-        <button onClick={addTask} className='btn'>Add Task</button>
+        
+        <div className="task-input">
+          <input
+            type="text"
+            value={newTask.description}
+            onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+            placeholder="Add a new task"
+          />
+          <select
+            value={newTask.priority}
+            onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
+          >
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+          <button onClick={editingIndex !== null ? updateTask : addTask} className="btn">
+            {editingIndex !== null ? 'Update Task' : 'Add Task'}
+          </button>
+        </div>
+        
         <input
           type="text"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="Search tasks"
+          className="search-bar"
         />
+
         <ul>
           {filteredTasks.map((task, index) => (
             <li key={index} style={{ color: priorityColor[task.priority] }}>
-              <input
-                type="text"
-                value={task.description}
-                onChange={(e) => updateTask(index, { ...task, description: e.target.value })}
-              />
-              <select
-                value={task.priority}
-                onChange={(e) => updateTask(index, { ...task, priority: e.target.value })}
-              >
-                <option value="high">High</option>
-                <option value="medium">Medium</option>
-                <option value="low">Low</option>
-              </select>
-              <button onClick={() => removeTask(index)}>Remove</button>
+              <span>{task.description} - {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}</span>
+              <div className="action-btns">
+                <button className="remove" onClick={() => removeTask(index)}>Remove</button>
+                <button className="update" onClick={() => startEditing(index)}>Update</button>
+              </div>
             </li>
           ))}
         </ul>
